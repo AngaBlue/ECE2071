@@ -3,10 +3,10 @@
 int main(void) {
     int int1, int2;
 
-    printf("Enter first integer: ");
+    printf("%s", "Enter first integer: ");
     scanf("%d", &int1);
 
-    printf("Enter second integer: ");
+    printf("%s", "Enter second integer: ");
     scanf("%d", &int2);
 
     int sum = int1 + int2;
