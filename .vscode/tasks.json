@@ -8,7 +8,7 @@
 			"args": [
 				"-std=c17",
 				"-pedantic",
-				"Werror",
+				"-Werror",
 				"-fdiagnostics-color=always",
 				"-g",
 				"${file}",
