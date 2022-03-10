@@ -12,6 +12,8 @@ char* load_digits(unsigned long *length);
 void store_palindrome(unsigned int index, unsigned int length);
 int compare(const void* a, const void* b);
 bool is_power_of_two(unsigned int x);
+void* xmalloc(size_t size);
+void* xrealloc(void* ptr, size_t size);
 
 typedef struct {
     unsigned int count;
@@ -132,12 +134,12 @@ void store_palindrome(unsigned int index, unsigned int length) {
     // Check if palindrome is already stored
     if (palindrome_count <= length) {
         // Allocate more space for new palindrome length
-        palindromes = (Palindrome*) realloc(palindromes, (length + 1) * sizeof(Palindrome));
+        palindromes = (Palindrome*) xrealloc(palindromes, (length + 1) * sizeof(Palindrome));
 
         // Initialize new palindromes
         for (int i = palindrome_count; i <= length; i++) {
             palindromes[i].count = 0;
-            palindromes[i].distances = (unsigned int*) malloc(sizeof(unsigned int));
+            palindromes[i].distances = (unsigned int*) xmalloc(sizeof(unsigned int));
             palindromes[i].last_index = 0;
         }
 
@@ -149,7 +151,7 @@ void store_palindrome(unsigned int index, unsigned int length) {
 
     // Resize dynamic array
     if (is_power_of_two(palindrome->count)) {
-        palindrome->distances = (unsigned int*) realloc(palindrome->distances, (palindrome->count == 0 ? 1 : palindrome->count * 2) * sizeof(unsigned int));
+        palindrome->distances = (unsigned int*) xrealloc(palindrome->distances, (palindrome->count == 0 ? 1 : palindrome->count * 2) * sizeof(unsigned int));
     }
 
     // If exist last index, calculate distance 
@@ -177,7 +179,26 @@ int compare(const void* a, const void* b) {
 }
 
 // https://stackoverflow.com/questions/600293/how-to-check-if-a-number-is-a-power-of-2
-bool is_power_of_two(unsigned int x)
-{
+bool is_power_of_two(unsigned int x) {
     return (x != 0) && ((x & (x - 1)) == 0);
 }
+
+void* xmalloc(size_t size) {
+    void* ptr = malloc(size);
+    if (ptr == NULL) {
+        puts("Error allocating memory.");
+        exit(EXIT_FAILURE);
+    }
+
+    return ptr;
+}
+
+void* xrealloc(void* ptr, size_t size) {
+    ptr = realloc(ptr, size);
+    if (ptr == NULL) {
+        puts("Error reallocating memory.");
+        exit(EXIT_FAILURE);
+    }
+
+    return ptr;
+};
