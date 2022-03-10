@@ -3,10 +3,12 @@
 #include <string.h>
 #include <stdbool.h>
 
+#define FILENAME "pi_50m.txt"
+
 /**
  * Function declarations
  */
-char* load_digits();
+char* load_digits(unsigned long *length);
 void store_palindrome(unsigned int index, unsigned int length);
 int compare(const void* a, const void* b);
 bool is_power_of_two(unsigned int x);
@@ -21,14 +23,14 @@ Palindrome* palindromes;
 unsigned int palindrome_count = 0; 
 
 int main(void) {
-    char *digits = load_digits();
+    unsigned long length = 0;
+    char *digits = load_digits(&length);
     if (digits == NULL) {
         puts("Error loading digits from file.");
         return EXIT_FAILURE;
     }
 
-    unsigned int length = strlen(digits);
-    printf("Loaded %d characters.\n", length);
+    printf("Loaded %s.\n", FILENAME);
 
     // Loop through the digits
     for (unsigned int i = 0; i < length; i++) {
@@ -92,23 +94,22 @@ int main(void) {
  * @brief Loads the digits from the file
  * @return The digits as a string
  */
-char* load_digits()
+char* load_digits(unsigned long *length)
 {
     char* digits = 0;
-    long length;
-    FILE *file = fopen("pi_50m.txt", "rb");
+    FILE *file = fopen(FILENAME, "rb");
 
     if (file) {
         // Navigate to end of file to get file length
         fseek(file, 0, SEEK_END);
-        length = ftell(file);
-        fseek (file, 0, SEEK_SET);
+        *length = ftell(file);
+        fseek(file, 0, SEEK_SET);
 
         // Allocate memory for file content
-        digits = (char*) malloc((length + 1) * sizeof(char));
+        digits = (char*) malloc((*length + 1) * sizeof(char));
         if (digits) {
             // Read each character from file into digits
-            fread(digits, sizeof(char), length, file);
+            fread(digits, sizeof(char), *length, file);
         }
 
         // Close file
@@ -116,7 +117,7 @@ char* load_digits()
     }
 
     // Add NULL terminator to end string
-    digits[length] = '\0';
+    digits[*length] = '\0';
 
     return digits;
 }
