@@ -84,7 +84,7 @@ int main(void) {
         int median_distance = palindrome->distances[palindrome->count / 2];
 
         // Output the palindromes
-        printf("%13d %13d %12d\n", i, palindrome->count + 1, median_distance);
+        printf("%11d %13d %14d\n", i, palindrome->count + 1, median_distance);
     }
 
     return EXIT_SUCCESS;
