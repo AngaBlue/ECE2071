@@ -9,13 +9,16 @@
 char* load_digits();
 void store_palindrome(unsigned int index, unsigned int length);
 int compare(const void* a, const void* b);
+bool is_power_of_two(unsigned int x);
 
 typedef struct {
+    unsigned int count;
     unsigned int* distances;
     unsigned int last_index;
 } Palindrome;
 
 Palindrome* palindromes;
+unsigned int palindrome_count = 0; 
 
 int main(void) {
     char *digits = load_digits();
@@ -70,18 +73,16 @@ int main(void) {
     printf("%-13s %-13s %-12s\n", "Length", "Palindromes", "Distance");
     printf("%-13s %-13s %-12s\n", "-----------", "-----------", "------------");
 
-    int palindromes_length = sizeof(palindromes) / sizeof(Palindrome);
 
-    for (unsigned int i = 2; i < palindromes_length; i++) {
+    for (unsigned int i = 2; i < palindrome_count; i++) {
         Palindrome* palindrome = &palindromes[i];
 
         // Sort the distances & find median distance
-        int count = sizeof(palindrome->distances) / sizeof(int);
-        qsort(palindrome->distances, count, sizeof(int), compare);
-        int median_distance = palindrome->distances[count / 2];
+        qsort(palindrome->distances, palindrome->count, sizeof(int), compare);
+        int median_distance = palindrome->distances[palindrome->count / 2];
 
         // Output the palindromes
-        printf("%13d %13d %12d\n", i, count + 1, median_distance);
+        printf("%13d %13d %12d\n", i, palindrome->count + 1, median_distance);
     }
 
     return EXIT_SUCCESS;
@@ -128,24 +129,32 @@ char* load_digits()
  */
 void store_palindrome(unsigned int index, unsigned int length) {
     // Check if palindrome is already stored
-    int size = sizeof(palindromes) / sizeof(Palindrome);
-    if (size <= length) {
+    if (palindrome_count <= length) {
         // Allocate more space for new palindrome length
         palindromes = (Palindrome*) realloc(palindromes, (length + 1) * sizeof(Palindrome));
 
-        for (int i = size; i <= length; i++) {
+        // Initialize new palindromes
+        for (int i = palindrome_count; i <= length; i++) {
+            palindromes[i].count = 0;
+            palindromes[i].distances = (unsigned int*) malloc(sizeof(unsigned int));
             palindromes[i].last_index = 0;
         }
+
+        palindrome_count = length + 1;
     }
 
     // Store the palindrome
     Palindrome* palindrome = &palindromes[length];
-    int distances_size = sizeof(palindrome->distances) / sizeof(unsigned int);
-    palindrome->distances = (unsigned int*) realloc(palindrome->distances, (distances_size + 1) * sizeof(unsigned int));
+
+    // Resize dynamic array
+    if (is_power_of_two(palindrome->count)) {
+        palindrome->distances = (unsigned int*) realloc(palindrome->distances, (palindrome->count == 0 ? 1 : palindrome->count * 2) * sizeof(unsigned int));
+    }
 
     // If exist last index, calculate distance 
     if (palindrome->last_index != 0) {
-        palindrome->distances[distances_size] = index - palindrome->last_index;
+        palindrome->distances[palindrome->count] = index - palindrome->last_index;
+        palindrome->count++;
     }
 
     // Update last index 
@@ -164,4 +173,10 @@ int compare(const void* a, const void* b) {
      if (int_a == int_b) return 0;
      else if (int_a < int_b) return -1;
      else return 1;
+}
+
+// https://stackoverflow.com/questions/600293/how-to-check-if-a-number-is-a-power-of-2
+bool is_power_of_two(unsigned int x)
+{
+    return (x != 0) && ((x & (x - 1)) == 0);
 }
