@@ -83,6 +83,8 @@ int main(void) {
     printf("%-13s %-13s %-12s\n", "Length", "Palindromes", "Distance");
     printf("%-13s %-13s %-12s\n", "-----------", "-----------", "------------");
 
+    clock_t sort_time = clock();
+
     for (uint_fast32_t i = 2; i < palindromes_length; i++) {
         Palindrome* palindrome = &palindromes[i];
 
@@ -93,6 +95,8 @@ int main(void) {
         // Output the palindromes
         printf("%11d %13d %14d\n", i, palindrome->length + 1, palindrome->length == 0 ? 0 : median_distance);
     }
+
+    printf("Sorted palindromes in %d ms.\n", (int)(clock() - sort_time) * 1000 / CLOCKS_PER_SEC);
 
     return EXIT_SUCCESS;
 }
