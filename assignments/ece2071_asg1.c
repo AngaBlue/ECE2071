@@ -24,7 +24,7 @@ typedef struct {
 } Palindrome;
 
 Palindrome* palindromes;
-uint_fast32_t palindromes_length = 0; 
+uint_fast32_t palindromes_length = 0;
 
 int main(void) {
     uint_fast32_t length = 0;
@@ -53,9 +53,9 @@ int main(void) {
             // Even palindrone
             int_fast32_t end = i + radius - 1;
             if (end > length) break;
-            if (digits[start] == digits[end]) {
+            if (even && digits[start] == digits[end]) {
                 // Valid palindrome
-                store_palindrome(i, 2 * radius);
+                store_palindrome(start, 2 * radius);
             } else {
                 even = false;
             }
@@ -63,9 +63,9 @@ int main(void) {
             // Odd palindrone
             end++;
             if (end > length) break;
-            if (digits[start] == digits[end]) {
+            if (odd && digits[start] == digits[end]) {
                 // Valid palindrome
-                store_palindrome(i, 2 * radius + 1);
+                store_palindrome(start, 2 * radius + 1);
             } else {
                 odd = false;
             }
