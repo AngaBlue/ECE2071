@@ -40,36 +40,33 @@ int main(void) {
 
     // Loop through the digits
     for (uint_fast32_t i = 0; i < length; i++) {
-        uint_fast32_t radius = 1;
-        bool odd = true;
-        bool even = true;
+        int radius = 1;
 
-        // Use the current digit as the middle element of the palindrome (right middle if even)
-        while (odd || even) {
+        while (true) {
             int_fast32_t start = i - radius;
-            // Check if start is out of bounds
-            if (start < 0) break;
-
-            // Even palindrone
             int_fast32_t end = i + radius - 1;
-            if (end > length) break;
-            if (even && digits[start] == digits[end]) {
-                // Valid palindrome
-                store_palindrome(start, 2 * radius);
-            } else {
-                even = false;
-            }
 
-            // Odd palindrone
-            end++;
-            if (end > length) break;
-            if (odd && digits[start] == digits[end]) {
-                // Valid palindrome
-                store_palindrome(start, 2 * radius + 1);
-            } else {
-                odd = false;
-            }
+            if (start < 0 || end > length) break;
 
+            if (digits[start] != digits[end]) break; 
+
+            // Valid palindrome
+            store_palindrome(start, 2 * radius);
+            radius++;
+        }
+
+        radius = 1;
+
+        while (true) {
+            int_fast32_t start = i - radius;
+            int_fast32_t end = i + radius;
+
+            if (start < 0 || end > length) break;
+
+            if (digits[start] != digits[end]) break; 
+
+            // Valid palindrome
+            store_palindrome(start, 2 * radius + 1);
             radius++;
         }
     }
