@@ -1,9 +1,17 @@
+/**
+ * @file ece2071_asg1.c
+ * @author Angus Bosmans (abos0006@student.monash.edu)
+ * @brief ECE2071 Assignment 1
+ * @date 2022-03-10
+ * 
+ * @copyright Copyright (c) 2022
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <time.h>
+#include <math.h>
 
 #define FILENAME "pi_50m.txt"
 
@@ -11,11 +19,13 @@ typedef struct {
     uint_fast32_t* distances;
     uint_fast32_t size;
     uint_fast32_t length;
+    uint_fast32_t predicted_length;
     uint_fast32_t last_index;
 } Palindrome;
 
 typedef struct {
     Palindrome* values;
+    uint_fast32_t size;
     uint_fast32_t length;
 } Palindromes;
 
@@ -55,39 +65,36 @@ void* xmalloc(size_t size);
  */
 void* xrealloc(void* ptr, size_t size);
 
-/**
- * Globals
- */
 Palindromes palindromes;
 
-int main(void) {
-    uint_fast32_t length;
-    char *digits;
-    
-    load_file(FILENAME, &digits, &length);
+char *digits;
+uint_fast32_t digits_length;
+
+int main(void) {  
+    load_file(FILENAME, &digits, &digits_length);
 
     if (digits == NULL) {
-        puts("Error loading digits from file.");
+        printf("Failed to load digits from file \"%s\".", FILENAME);
         return EXIT_FAILURE;
     }
 
     puts("Finding palindromes...");	
 
-    // Initialise palindromes
+    // Initialise palindromes, allocating a predicted amount of memory
     palindromes = (Palindromes) {
-        .values = (Palindrome*) xmalloc(sizeof(Palindrome)),
+        .values = (Palindrome*) xmalloc((int) (log10(digits_length) * 2) * sizeof(Palindrome)),
         .length = 0
     };
 
     // Loop through the digits
-    for (uint_fast32_t i = 0; i < length; i++) {
+    for (uint_fast32_t i = 0; i < digits_length; i++) {
         // Even Palindromes 
         int radius = 1;
         while (true) {
             int_fast32_t start = i - radius;
             int_fast32_t end = i + radius - 1;
 
-            if (start < 0 || end > length) break;
+            if (start < 0 || end > digits_length) break;
 
             if (digits[start] != digits[end]) break; 
 
@@ -102,7 +109,7 @@ int main(void) {
             int_fast32_t start = i - radius;
             int_fast32_t end = i + radius;
 
-            if (start < 0 || end > length) break;
+            if (start < 0 || end > digits_length) break;
 
             if (digits[start] != digits[end]) break; 
 
@@ -158,16 +165,22 @@ void load_file(char *filename, char **content, uint_fast32_t *length)
 
 void store_palindrome(uint_fast32_t index, uint_fast32_t length) {
     // Check if palindrome is already stored
-    if (palindromes.length <= length) {
+    if (palindromes.size <= length) {
         // Allocate more space for new palindrome length
         palindromes.values = (Palindrome*) xrealloc(palindromes.values, (length + 1) * sizeof(Palindrome));
+        palindromes.size = length + 1;
+    }
 
-        // Initialize new palindromes
-        for (uint_fast32_t i = palindromes.length; i <= length; i++) {
-            palindromes.values[i].distances = (uint_fast32_t*) xmalloc(sizeof(uint_fast32_t));
-            palindromes.values[i].size = 1;
-            palindromes.values[i].length = 0;
-            palindromes.values[i].last_index = 0;
+    if (palindromes.length <= length) {
+        // Initialize new palindrome lengths
+        for (uint_fast32_t i = palindromes.length >= 2 ? palindromes.length : 2; i <= length; i++) {
+            Palindrome* palindrome = &palindromes.values[i];
+
+            // Predict length of palindrome and allocate memory
+            palindrome->size = palindrome->predicted_length = digits_length / pow(10, (int) i / 2);
+            palindrome->distances = (uint_fast32_t*) xmalloc(palindrome->predicted_length * sizeof(uint_fast32_t));
+            palindrome->length = 0;
+            palindrome->last_index = 0;
         }
 
         palindromes.length = length + 1;
@@ -178,7 +191,7 @@ void store_palindrome(uint_fast32_t index, uint_fast32_t length) {
 
     // Resize dynamic array
     if (palindrome->length == palindrome->size) {
-        palindrome->size *= 2;
+        palindrome->size += (palindrome->predicted_length / 100) + 1;
         palindrome->distances = (uint_fast32_t*) xrealloc(palindrome->distances, palindrome->size * sizeof(uint_fast32_t));
     }
 
