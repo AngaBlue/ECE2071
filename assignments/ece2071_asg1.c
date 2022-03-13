@@ -36,7 +36,7 @@ typedef struct
  * @brief Loads the digits from the file
  * @return The digits as a string
  */
-void load_file(char *filename, char **content, size_t *length);
+void load_file(const char *filename, char **content, size_t *length);
 
 /**
  * @brief Stores a palindrome of the given length and calculates the distance since the last palindrome of the same length
@@ -44,7 +44,7 @@ void load_file(char *filename, char **content, size_t *length);
  * @param index Start index of the palindrome
  * @param length Length of the palindrome
  */
-void store_palindrome(size_t index, uint_fast32_t length);
+void store_palindrome(const size_t index, const uint_fast32_t length);
 
 /**
  * @brief Safely allocates memory
@@ -52,7 +52,7 @@ void store_palindrome(size_t index, uint_fast32_t length);
  * @param size Size of the new memory
  * @return void* Pointer to the new memory
  */
-void *xmalloc(size_t size);
+void *xmalloc(const size_t size);
 
 /**
  * @brief Safely reallocates memory
@@ -61,7 +61,7 @@ void *xmalloc(size_t size);
  * @param size Size of the new memory
  * @return void* Pointer to the new memory
  */
-void *xrealloc(void *ptr, size_t size);
+void *xrealloc(void *ptr, const size_t size);
 
 /**
  * @brief A fast unsigned integer radix sort implementation adapted from https://github.com/AwardOfSky/Fast-Radix-Sort
@@ -153,7 +153,7 @@ int main(void)
     return EXIT_SUCCESS;
 }
 
-void load_file(char *filename, char **content, size_t *length)
+void load_file(const char *filename, char **content, size_t *length)
 {
     *content = 0;
     FILE *file = fopen(filename, "rb");
@@ -178,7 +178,7 @@ void load_file(char *filename, char **content, size_t *length)
     }
 }
 
-void store_palindrome(size_t index, uint_fast32_t length)
+void store_palindrome(const size_t index, const uint_fast32_t length)
 {
     // Check if palindrome is already stored
     if (palindromes.size <= length)
@@ -226,7 +226,7 @@ void store_palindrome(size_t index, uint_fast32_t length)
     palindrome->last_index = index;
 }
 
-void *xmalloc(size_t size)
+void *xmalloc(const size_t size)
 {
     void *ptr = malloc(size);
     if (ptr == NULL)
@@ -238,7 +238,7 @@ void *xmalloc(size_t size)
     return ptr;
 }
 
-void *xrealloc(void *ptr, size_t size)
+void *xrealloc(void *ptr, const size_t size)
 {
     ptr = realloc(ptr, size);
     if (ptr == NULL)
@@ -250,6 +250,7 @@ void *xrealloc(void *ptr, size_t size)
     return ptr;
 }
 
+// Implementation adapted from https://github.com/AwardOfSky/Fast-Radix-Sort
 void radix_sort(register uint_fast32_t vector[], register const uint_fast32_t size)
 {
 
