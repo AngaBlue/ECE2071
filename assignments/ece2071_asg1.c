@@ -64,12 +64,13 @@ void *xmalloc(const size_t size);
 void *xrealloc(void *ptr, const size_t size);
 
 /**
- * @brief A fast unsigned integer radix sort implementation adapted from https://github.com/AwardOfSky/Fast-Radix-Sort
+ * @brief Comparison function for qsort
  *
- * @param vector Values to sort
- * @param size The length of the vector
+ * @param a Pointer to the first element
+ * @param b Pointer to the second element
+ * @return int -1 if a < b, 0 if a == b, 1 if a > b
  */
-void radix_sort(register uint_fast32_t vector[], register const uint_fast32_t size);
+int compare(const void *a, const void *b);
 
 Palindromes palindromes;
 
@@ -143,7 +144,7 @@ int main(void)
         Palindrome *palindrome = &palindromes.values[i];
 
         // Sort the distances & find median distance
-        radix_sort(palindrome->distances, palindrome->length);
+        qsort(palindrome->distances, palindrome->length, sizeof(uint_fast32_t), compare);
         double median_distance;
         if (palindrome->length % 2 == 0)
         {
@@ -268,130 +269,7 @@ void *xrealloc(void *ptr, const size_t size)
     return ptr;
 }
 
-// Implementation adapted from https://github.com/AwardOfSky/Fast-Radix-Sort
-void radix_sort(register uint_fast32_t vector[], register const uint_fast32_t size)
+int compare(const void *a, const void *b) 
 {
-
-    /* Support for variable sized integers without overflow warnings */
-    const int MAX_UINT = ((((1 << ((sizeof(uint_fast32_t) << 3) - 2)) - 1) << 1) + 1);
-    const int LAST_EXP = (sizeof(uint_fast32_t) - 1) << 3;
-
-    /* Define std preliminary, constrain and expression to check if all bytes are sorted */
-#define PRELIMINARY 100
-#define MISSING_BITS exp<(sizeof(uint_fast32_t) << 3) && (max >> exp)> 0
-    /* Check for biggest integer in [a, b[ array segment */
-#define LOOP_MAX(a, b)                               \
-    for (s = &vector[a], k = &vector[b]; s < k; ++s) \
-    {                                                \
-        if (*s > max)                                \
-        {                                            \
-            max = *s;                                \
-        }                                            \
-    }
-
-    /* b = helper array pointer ; s, k and i = array iterators */
-    /* exp = bits sorted, max = maximun range in array         */
-    /* point = array of pointers to the helper array           */
-    register uint_fast32_t *b, *s, *k;
-    register uint_fast32_t exp = 0;
-    register uint_fast32_t max = exp;
-    uint_fast32_t i, *point[0x100];
-    int swap = 0;
-
-    /* Set preliminary according to size */
-    const uint_fast32_t preliminary = (size > PRELIMINARY) ? PRELIMINARY : (size >> 3);
-
-    /* If we found a integer with more than 24 bits in preliminar, */
-    /* will have to sort all bytes either way, so max = MAX_UINT */
-    LOOP_MAX(1, preliminary);
-    if (max <= (MAX_UINT >> 7))
-    {
-        LOOP_MAX(preliminary, size);
-    }
-
-    /* Helper array initialization */
-    b = (uint_fast32_t *)malloc(sizeof(uint_fast32_t) * size);
-
-    /* Core algorithm: for a specific byte, fill the buckets array, */
-    /* rearrange the array and reset the initial array accordingly. */
-#define SORT_BYTE(vec, bb, shift)                                        \
-    uint_fast32_t bucket[0x100] = {0};                                   \
-    register unsigned char *n = (unsigned char *)(vec) + (exp >> 3), *m; \
-    for (m = (unsigned char *)(&vec[size & 0xFFFFFFFC]); n < m;)         \
-    {                                                                    \
-        ++bucket[*n];                                                    \
-        n += sizeof(int);                                                \
-        ++bucket[*n];                                                    \
-        n += sizeof(int);                                                \
-        ++bucket[*n];                                                    \
-        n += sizeof(int);                                                \
-        ++bucket[*n];                                                    \
-        n += sizeof(int);                                                \
-    }                                                                    \
-    for (n = (unsigned char *)(&vec[size & 0xFFFFFFFC]) + (exp >> 3),    \
-        m = (unsigned char *)(&vec[size]);                               \
-         n < m;)                                                         \
-    {                                                                    \
-        ++bucket[*n];                                                    \
-        n += sizeof(int);                                                \
-    }                                                                    \
-    s = bb;                                                              \
-    int next = 0;                                                        \
-    for (i = 0; i < 0x100; ++i)                                          \
-    {                                                                    \
-        if (bucket[i] == size)                                           \
-        {                                                                \
-            next = 1;                                                    \
-            break;                                                       \
-        }                                                                \
-    }                                                                    \
-    if (next)                                                            \
-    {                                                                    \
-        exp += 8;                                                        \
-        continue;                                                        \
-    }                                                                    \
-    for (i = 0; i < 0x100; s += bucket[i++])                             \
-    {                                                                    \
-        point[i] = s;                                                    \
-    }                                                                    \
-    for (s = vec, k = &vec[size]; s < k; ++s)                            \
-    {                                                                    \
-        *point[(*s shift) & 0xFF]++ = *s;                                \
-    }                                                                    \
-    swap = 1 - swap;                                                     \
-    exp += 8;
-
-    /* Sort each byte (if needed) */
-    while (MISSING_BITS)
-    {
-        if (exp)
-        {
-            if (swap)
-            {
-                SORT_BYTE(b, vector, >> exp);
-            }
-            else
-            {
-                SORT_BYTE(vector, b, >> exp);
-            }
-        }
-        else
-        {
-            SORT_BYTE(vector, b, );
-        }
-    }
-
-    if (swap)
-    {
-        memcpy(vector, b, sizeof(uint_fast32_t) * size);
-    }
-
-    /* Free helper array */
-    free(b);
-
-/* Undefine function scoped macros for eventual later use */
-#undef PRELIMINARY
-#undef MISSING_BITS
-#undef LOOP_MAX
-#undef SORT_BYTE
+    return (*(uint_fast32_t*)a - *(uint_fast32_t*)b);
 }
