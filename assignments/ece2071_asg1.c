@@ -134,6 +134,14 @@ int main(void)
 
     free(digits);
 
+    // Sort palindromes
+    for (size_t i = 2; i < palindromes.length; i++)
+    {
+        Palindrome *palindrome = &palindromes.values[i];
+
+        qsort(palindrome->distances, palindrome->length, sizeof(uint_fast32_t), compare);
+    }
+
     // Output the palindromes
     printf("%-13s %-13s %-12s\n", "Palindrome", "Number of", "Median Digit");
     printf("%-13s %-13s %-12s\n", "Length", "Palindromes", "Distance");
@@ -143,8 +151,7 @@ int main(void)
     {
         Palindrome *palindrome = &palindromes.values[i];
 
-        // Sort the distances & find median distance
-        qsort(palindrome->distances, palindrome->length, sizeof(uint_fast32_t), compare);
+        // Find median distance
         double median_distance;
         if (palindrome->length % 2 == 0)
         {
@@ -269,7 +276,7 @@ void *xrealloc(void *ptr, const size_t size)
     return ptr;
 }
 
-int compare(const void *a, const void *b) 
+int compare(const void *a, const void *b)
 {
-    return (*(uint_fast32_t*)a - *(uint_fast32_t*)b);
+    return (*(uint_fast32_t *)a - *(uint_fast32_t *)b);
 }
