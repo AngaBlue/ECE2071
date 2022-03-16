@@ -144,10 +144,28 @@ int main(void)
 
         // Sort the distances & find median distance
         radix_sort(palindrome->distances, palindrome->length);
-        uint_fast32_t median_distance = palindrome->distances[palindrome->length / 2];
+        double median_distance;
+        if (palindrome->length % 2 == 0)
+        {
+            median_distance = (double)(palindrome->distances[palindrome->length / 2] + palindrome->distances[palindrome->length / 2 - 1]) / 2;
+        }
+        else
+        {
+            median_distance = palindrome->distances[palindrome->length / 2];
+        }
+
+        char median[14];
+        if (ceil(median_distance) == median_distance)
+        {
+            sprintf(median, "%14i", palindrome->length == 0 ? 0 : (uint_fast32_t)median_distance);
+        }
+        else
+        {
+            sprintf(median, "%14.1f", median_distance);
+        }
 
         // Output the palindromes
-        printf("%11d %13d %14d\n", i, palindrome->length + 1, palindrome->length == 0 ? 0 : median_distance);
+        printf("%11zi %13zi %s\n", i, palindrome->length + 1, median);
     }
 
     return EXIT_SUCCESS;
