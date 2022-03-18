@@ -4,7 +4,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-#define LENGTH 720
+#define LENGTH 360
 #define ROWS (LENGTH / 5)
 #define WIDTH 30
 #define VERTICAL_DIVIDERS 10
@@ -31,7 +31,7 @@ int main(void)
 
         if (x % HORIZONTAL_DIVIDERS == 0)
         {
-            // Horizontal line
+            // Horizontal divider line
             for (int j = 0; j < ROW_SIZE; j++)
                 row[j] = j % VERTICAL_DIVIDERS == 0 ? INTERSECTION : HORIZONTAL_DIVIDER;
         }
