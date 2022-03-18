@@ -25,6 +25,8 @@ int main(void)
         return EXIT_FAILURE;
     }
 
+    printf("%3s %-*d0%*d\n", "", WIDTH, -1, WIDTH, 1);
+
     for (int i = 0; i <= ROWS; i++)
     {
         const int x = i * (LENGTH / ROWS);
