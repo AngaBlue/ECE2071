@@ -7,8 +7,8 @@
  * @copyright Copyright (c) 2022
  */
 
-// Baseline laptop: 1.3s
-// Current laptop:
+// Baseline laptop: 1.300s
+// Current laptop: 0.520
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -108,7 +108,7 @@ int main(void)
         Palindrome *palindrome = &palindromes.values[i];
 
         // Predict length of palindrome and allocate memory
-        uint_fast64_t predicted_length = ceil((digits_length / pow(10, (int)i / 2) * 1.1));
+        uint_fast32_t predicted_length = ceil((digits_length / pow(10, (int)i / 2) * 1.1));
         palindrome->distances = (uint_fast32_t *)xmalloc(predicted_length * sizeof(uint_fast32_t));
         palindrome->length = 0;
         palindrome->last_index = 0;
