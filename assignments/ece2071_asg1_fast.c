@@ -83,7 +83,7 @@ size_t digits_length;
     if (palindrome->last_index != 0)                                                    \
     {                                                                                   \
         palindrome->distances[palindrome->length] = index - palindrome->last_index - 1; \
-        palindrome->length++;                                                           \
+        ++palindrome->length;                                                           \
     }                                                                                   \
     /* Update last index */                                                             \
     palindrome->last_index = index;
@@ -103,7 +103,7 @@ int main(void)
     palindromes.values = (Palindrome *)xmalloc(palindromes.length * sizeof(Palindrome));
 
     // Initialize new palindrome length
-    for (uint_fast32_t i = 2; i <= palindromes.length; i++)
+    for (uint_fast32_t i = 2; i <= palindromes.length; ++i)
     {
         Palindrome *palindrome = &palindromes.values[i];
 
@@ -117,7 +117,7 @@ int main(void)
     find_palindromes();
 
     // Sort palindromes
-    for (size_t i = 2; i < palindromes.length; i++)
+    for (size_t i = 2; i < palindromes.length; ++i)
     {
         Palindrome *palindrome = &palindromes.values[i];
 
@@ -129,7 +129,7 @@ int main(void)
     printf("%-13s %-13s %-12s\n", "Length", "Palindromes", "Distance");
     printf("%-13s %-13s %-12s\n", "-----------", "-----------", "------------");
 
-    for (size_t i = 2; i < palindromes.length; i++)
+    for (size_t i = 2; i < palindromes.length; ++i)
     {
         Palindrome *palindrome = &palindromes.values[i];
 
@@ -212,16 +212,17 @@ void *xrealloc(void *ptr, const size_t size)
 
 void find_palindromes()
 {
+    register uint_fast32_t radius, length;
+    register size_t start, end, i;
     // Loop through the digits
-    for (size_t i = 0; i < digits_length; i++)
+    for (i = 0; i < digits_length; ++i)
     {
         // Even Palindromes
-        uint_fast32_t radius = 1;
-        uint_fast32_t length;
+        radius = 1;
         while (true)
         {
-            size_t start = i - radius;
-            size_t end = i + radius - 1;
+            start = i - radius;
+            end = i + radius - 1;
 
             if (start < 0 || end > digits_length)
                 break;
@@ -230,17 +231,17 @@ void find_palindromes()
                 break;
 
             // Valid palindrome
-            length = radius + radius;
+            length = radius << 1;
             store_palindrome(start, length);
-            radius++;
+            ++radius;
         }
 
         // Odd Palindromes
         radius = 1;
         while (true)
         {
-            size_t start = i - radius;
-            size_t end = i + radius;
+            start = i - radius;
+            end = i + radius;
 
             if (start < 0 || end > digits_length)
                 break;
@@ -249,9 +250,9 @@ void find_palindromes()
                 break;
 
             // Valid palindrome
-            length = radius + radius + 1;
+            length = (radius << 1) + 1;
             store_palindrome(start, length);
-            radius++;
+            ++radius;
         }
     }
 
