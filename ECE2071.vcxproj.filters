@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="assignments\ece2071_asg1.c">
+    <ClCompile Include="assignments\ece2071_asg1_fast.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
