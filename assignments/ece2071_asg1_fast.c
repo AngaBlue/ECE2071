@@ -8,7 +8,7 @@
  */
 
 // Baseline laptop: 1.300s
-// Current laptop: 0.520
+// Current laptop: 0.460s
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,8 +36,7 @@ typedef struct
  * @brief Loads the digits from the file
  * @return The digits as a string
  */
-void load_file(const char *filename, char **content, size_t *length);
-
+void load_file(const char *const filename, char **const content, size_t *const length);
 /**
  * @brief Safely allocates memory
  *
@@ -69,24 +68,6 @@ Palindromes palindromes;
 
 char *digits;
 size_t digits_length;
-
-/**
- * @brief Stores a palindrome of the given length and calculates the distance since the last palindrome of the same length
- *
- * @param index Start index of the palindrome
- * @param length Length of the palindrome
- */
-#define store_palindrome(index, length)                                                 \
-    /* Store the palindrome */                                                          \
-    Palindrome *palindrome = &palindromes.values[length];                               \
-    /* If exist last index, calculate distance */                                       \
-    if (palindrome->last_index != 0)                                                    \
-    {                                                                                   \
-        palindrome->distances[palindrome->length] = index - palindrome->last_index - 1; \
-        ++palindrome->length;                                                           \
-    }                                                                                   \
-    /* Update last index */                                                             \
-    palindrome->last_index = index;
 
 int main(void)
 {
@@ -134,34 +115,24 @@ int main(void)
         Palindrome *palindrome = &palindromes.values[i];
 
         // Find median distance
-        double median_distance;
+        uint_fast32_t median_distance;
         if (palindrome->length % 2 == 0)
         {
-            median_distance = (double)(palindrome->distances[palindrome->length / 2] + palindrome->distances[palindrome->length / 2 - 1]) / 2;
+            median_distance = palindrome->distances[palindrome->length / 2 - 1];
         }
         else
         {
             median_distance = palindrome->distances[palindrome->length / 2];
         }
 
-        char median[14];
-        if (ceil(median_distance) == median_distance)
-        {
-            sprintf(median, "%14d", palindrome->length == 0 ? 0 : (uint_fast32_t)median_distance);
-        }
-        else
-        {
-            sprintf(median, "%14.1f", median_distance);
-        }
-
         // Output the palindromes
-        printf("%11zi %13zi %s\n", i, palindrome->length + 1, median);
+        printf("%11zi %13zi %14d\n", i, palindrome->length + 1, median_distance);
     }
 
     return EXIT_SUCCESS;
 }
 
-void load_file(const char *filename, char **content, size_t *length)
+void load_file(const char *const filename, char **const content, size_t *const length)
 {
     *content = 0;
     FILE *file = fopen(filename, "rb");
@@ -171,15 +142,16 @@ void load_file(const char *filename, char **content, size_t *length)
         // Navigate to end of file to get file length
         fseek(file, 0, SEEK_END);
         *length = ftell(file);
-        fseek(file, 0, SEEK_SET);
+        fseek(file, 2, SEEK_SET);
 
         // Allocate memory for file content
         *content = (char *)xmalloc((*length + 1) * sizeof(char));
-        if (*content)
-        {
-            // Read each character from file into digits
-            fread(*content, sizeof(char), *length, file);
-        }
+
+        // Read each character from file into digits
+        fread(*content + 1, sizeof(char), *length - 2, file);
+
+        (*content)[0] = '!';
+        (*content)[*length] = '@';
 
         // Close file
         fclose(file);
@@ -214,25 +186,41 @@ void find_palindromes()
 {
     register uint_fast32_t radius, length;
     register size_t start, end, i;
+    register Palindrome *palindrome;
+
+/**
+ * @brief Stores a palindrome of the given length and calculates the distance since the last palindrome of the same length
+ *
+ * @param index Start index of the palindrome
+ * @param length Length of the palindrome
+ */
+#define STORE_PALINDROME(index, length)                                             \
+    /* Store the palindrome */                                                      \
+    palindrome = &palindromes.values[length];                                       \
+    /* If exist last index, calculate distance */                                   \
+    if (palindrome->last_index != 0)                                                \
+    {                                                                               \
+        palindrome->distances[palindrome->length] = index - palindrome->last_index; \
+        ++palindrome->length;                                                       \
+    }                                                                               \
+    /* Update last index */                                                         \
+    palindrome->last_index = index;
+
     // Loop through the digits
-    for (i = 0; i < digits_length; ++i)
+    for (i = 1; i < digits_length; ++i)
     {
         // Even Palindromes
         radius = 1;
         while (true)
         {
             start = i - radius;
-            end = i + radius - 1;
 
-            if (start < 0 || end > digits_length)
-                break;
-
-            if (digits[start] != digits[end])
+            if (digits[start] != digits[i + radius - 1])
                 break;
 
             // Valid palindrome
-            length = radius << 1;
-            store_palindrome(start, length);
+            length = radius * 2;
+            STORE_PALINDROME(start, length);
             ++radius;
         }
 
@@ -241,22 +229,20 @@ void find_palindromes()
         while (true)
         {
             start = i - radius;
-            end = i + radius;
 
-            if (start < 0 || end > digits_length)
-                break;
-
-            if (digits[start] != digits[end])
+            if (digits[start] != digits[i + radius])
                 break;
 
             // Valid palindrome
-            length = (radius << 1) + 1;
-            store_palindrome(start, length);
+            length = radius * 2 + 1;
+            STORE_PALINDROME(start, length);
             ++radius;
         }
     }
 
     free(digits);
+
+#undef STORE_PALINDROME
 }
 
 void radix(register uint_fast32_t array[], register const uint_fast32_t size)
