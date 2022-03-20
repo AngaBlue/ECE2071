@@ -128,6 +128,8 @@ int main(void)
     {
         Palindrome *palindrome = &palindromes.values[i];
 
+        if (palindrome->length == 0) continue;
+
         // Find median distance
         uint_fast32_t median_distance;
 
@@ -278,10 +280,15 @@ static inline uint_fast32_t counting_median(const uint_fast32_t *const array, re
         total += buckets[i];
         if (total >= target)
         {
+            // Median found
             free(buckets);
             return i;
         }
     }
+
+    // Median not found
+    free(buckets);
+    return 0;
 }
 
 static inline int qsort_compare(const void *a, const void *b)
