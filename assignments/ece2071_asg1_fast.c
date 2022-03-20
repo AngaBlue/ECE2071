@@ -12,7 +12,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <math.h>
-#include <string.h>
 
 #define FILENAME "pi_50m.txt"
 
@@ -31,6 +30,10 @@ typedef struct
 
 /**
  * @brief Loads the digits from the file
+ * 
+ * @param filename The name of the file to load
+ * @param content A pointer to the pointer of the string to store the digits in
+ * @param length A pointer to the size of the string
  * @return The digits as a string
  */
 static inline void load_file(const char *const filename, char **const content, size_t *const length);
@@ -40,7 +43,14 @@ static inline void load_file(const char *const filename, char **const content, s
  */
 static inline void find_palindromes();
 
-static inline uint_fast32_t counting_median(register const uint_fast32_t *const vector, register const uint_fast32_t size);
+/**
+ * @brief Finds the median of an array using a modified counting sort
+ * 
+ * @param array The array to find the median of
+ * @param size The size of the array
+ * @return uint_fast32_t 
+ */
+static inline uint_fast32_t counting_median(const uint_fast32_t *const array, register const uint_fast32_t size);
 
 /**
  * @brief Comparison function for qsort
@@ -237,30 +247,32 @@ static inline void find_palindromes()
 #undef STORE_PALINDROME
 }
 
-static inline uint_fast32_t counting_median(const uint_fast32_t *const vector, register const uint_fast32_t size)
+static inline uint_fast32_t counting_median(const uint_fast32_t *const array, register const uint_fast32_t size)
 {
     // Find max
     register uint_fast32_t i, max = 0;
-    register uint_fast32_t target = size % 2 == 0 ? (size / 2) - 1 : size / 2;
 
     for (i = 0; i < size; ++i)
     {
-        if (vector[i] > max)
+        if (array[i] > max)
         {
-            max = vector[i];
+            max = array[i];
         }
     }
 
     // Create a histogram, initialised with 0 values
     uint_fast32_t *buckets = xcalloc(max + 1, sizeof(uint_fast32_t));
 
+    // Count the number of occurrences of each value
     for (i = 0; i < size; ++i)
     {
-        ++buckets[vector[i]];
+        ++buckets[array[i]];
     }
 
     register uint_fast32_t total = 0;
+    register uint_fast32_t target = size % 2 == 0 ? (size / 2) - 1 : size / 2;
 
+    // Sum buckets until the median threshold is met
     for (i = 1; i <= max; ++i)
     {
         total += buckets[i];
