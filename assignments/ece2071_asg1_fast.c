@@ -33,12 +33,23 @@ typedef struct
  * @brief Loads the digits from the file
  * @return The digits as a string
  */
-void load_file(const char *const filename, char **const content, size_t *const length);
+static inline void load_file(const char *const filename, char **const content, size_t *const length);
 
 /**
  * @brief Finds all palindromes and calculates the distance since the last palindrome of the same length
  */
-void find_palindromes();
+static inline void find_palindromes();
+
+static inline uint_fast32_t counting_median(register const uint_fast32_t *const vector, register const uint_fast32_t size);
+
+/**
+ * @brief Comparison function for qsort
+ *
+ * @param a
+ * @param b
+ * @return int
+ */
+static inline int qsort_compare(const void *a, const void *b);
 
 /**
  * @brief Safely allocates memory
@@ -49,35 +60,26 @@ void find_palindromes();
 void *xmalloc(const size_t size);
 
 /**
- * @brief Safely reallocates memory
+ * @brief Safely allocates memory
  *
- * @param ptr Pointer to the memory to reallocate
- * @param size Size of the new memory
+ * @param length The length of the array to allocate
+ * @param size The size of each element
  * @return void* Pointer to the new memory
  */
-void *xrealloc(void *ptr, const size_t size);
+void *xcalloc(const size_t length, const size_t element_size);
 
 /**
- * @brief Quick radix unsigned integer sort
- *
- * @param vector
- * @param size
+ * Global variables
  */
-void radix(register uint_fast32_t vector[], register const uint_fast32_t size);
-
-/**
- * @brief Comparison function for qsort
- *
- * @param a
- * @param b
- * @return int
- */
-static inline int compare(const void *a, const void *b);
 
 Palindromes palindromes;
 
 char *digits;
 size_t digits_length;
+
+/**
+ * Begin program
+ */
 
 int main(void)
 {
@@ -107,14 +109,6 @@ int main(void)
 
     find_palindromes();
 
-    // Sort palindromes
-    for (size_t i = 2; i < palindromes.length; ++i)
-    {
-        Palindrome *palindrome = &palindromes.values[i];
-
-        qsort(palindrome->distances, palindrome->length, sizeof(uint_fast32_t), compare);
-    }
-
     // Output the palindromes
     printf("%-13s %-13s %-12s\n", "Palindrome", "Number of", "Median Digit");
     printf("%-13s %-13s %-12s\n", "Length", "Palindromes", "Distance");
@@ -126,15 +120,27 @@ int main(void)
 
         // Find median distance
         uint_fast32_t median_distance;
-        if (palindrome->length % 2 == 0)
+
+        // Use either counting sort or qsort to find median
+        if (digits_length / palindrome->length < palindrome->length)
         {
-            median_distance = palindrome->distances[palindrome->length / 2 - 1];
+            // Faster counting sort
+            median_distance = counting_median(palindrome->distances, palindrome->length);
         }
         else
         {
-            median_distance = palindrome->distances[palindrome->length / 2];
+            // Memory efficient qsort
+            qsort(palindrome->distances, palindrome->length, sizeof(uint_fast32_t), qsort_compare);
+            if (palindrome->length % 2 == 0)
+            {
+                median_distance = palindrome->distances[palindrome->length / 2 - 1];
+            }
+            else
+            {
+                median_distance = palindrome->distances[palindrome->length / 2];
+            }
         }
-        
+
         // Output the palindromes
         printf("%11zi %13zi %14d\n", i, palindrome->length + 1, median_distance - 1);
     }
@@ -142,7 +148,7 @@ int main(void)
     return EXIT_SUCCESS;
 }
 
-void load_file(const char *const filename, char **const content, size_t *const length)
+static inline void load_file(const char *const filename, char **const content, size_t *const length)
 {
     *content = 0;
     FILE *file = fopen(filename, "rb");
@@ -168,7 +174,7 @@ void load_file(const char *const filename, char **const content, size_t *const l
     }
 }
 
-void find_palindromes()
+static inline void find_palindromes()
 {
     register uint_fast32_t radius, length;
     register size_t start, end, i;
@@ -231,6 +237,46 @@ void find_palindromes()
 #undef STORE_PALINDROME
 }
 
+static inline uint_fast32_t counting_median(const uint_fast32_t *const vector, register const uint_fast32_t size)
+{
+    // Find max
+    register uint_fast32_t i, max = 0;
+    register uint_fast32_t target = size % 2 == 0 ? (size / 2) - 1 : size / 2;
+
+    for (i = 0; i < size; ++i)
+    {
+        if (vector[i] > max)
+        {
+            max = vector[i];
+        }
+    }
+
+    // Create a histogram, initialised with 0 values
+    uint_fast32_t *buckets = xcalloc(max + 1, sizeof(uint_fast32_t));
+
+    for (i = 0; i < size; ++i)
+    {
+        ++buckets[vector[i]];
+    }
+
+    register uint_fast32_t total = 0;
+
+    for (i = 1; i <= max; ++i)
+    {
+        total += buckets[i];
+        if (total >= target)
+        {
+            free(buckets);
+            return i;
+        }
+    }
+}
+
+static inline int qsort_compare(const void *a, const void *b)
+{
+    return (*(const int *)a - *(const int *)b);
+}
+
 void *xmalloc(const size_t size)
 {
     void *ptr = malloc(size);
@@ -243,19 +289,14 @@ void *xmalloc(const size_t size)
     return ptr;
 }
 
-void *xrealloc(void *ptr, const size_t size)
+void *xcalloc(const size_t length, const size_t element_size)
 {
-    ptr = realloc(ptr, size);
+    void *ptr = calloc(length, element_size);
     if (ptr == NULL)
     {
-        puts("Error reallocating memory.");
+        puts("Error allocating memory.");
         exit(EXIT_FAILURE);
     }
 
     return ptr;
-}
-
-static inline int compare(const void *a, const void *b)
-{
-    return (*(const int *)a - *(const int *)b);
 }
