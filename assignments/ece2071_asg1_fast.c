@@ -7,9 +7,6 @@
  * @copyright Copyright (c) 2022
  */
 
-// Baseline laptop: 1.300s
-// Current laptop: 0.460s
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -37,6 +34,12 @@ typedef struct
  * @return The digits as a string
  */
 void load_file(const char *const filename, char **const content, size_t *const length);
+
+/**
+ * @brief Finds all palindromes and calculates the distance since the last palindrome of the same length
+ */
+void find_palindromes();
+
 /**
  * @brief Safely allocates memory
  *
@@ -62,7 +65,14 @@ void *xrealloc(void *ptr, const size_t size);
  */
 void radix(register uint_fast32_t vector[], register const uint_fast32_t size);
 
-void find_palindromes();
+/**
+ * @brief Comparison function for qsort
+ *
+ * @param a
+ * @param b
+ * @return int
+ */
+static inline int compare(const void *a, const void *b);
 
 Palindromes palindromes;
 
@@ -102,7 +112,7 @@ int main(void)
     {
         Palindrome *palindrome = &palindromes.values[i];
 
-        radix(palindrome->distances, palindrome->length);
+        qsort(palindrome->distances, palindrome->length, sizeof(uint_fast32_t), compare);
     }
 
     // Output the palindromes
@@ -124,7 +134,7 @@ int main(void)
         {
             median_distance = palindrome->distances[palindrome->length / 2];
         }
-
+        
         // Output the palindromes
         printf("%11zi %13zi %14d\n", i, palindrome->length + 1, median_distance - 1);
     }
@@ -156,30 +166,6 @@ void load_file(const char *const filename, char **const content, size_t *const l
         // Close file
         fclose(file);
     }
-}
-
-void *xmalloc(const size_t size)
-{
-    void *ptr = malloc(size);
-    if (ptr == NULL)
-    {
-        puts("Error allocating memory.");
-        exit(EXIT_FAILURE);
-    }
-
-    return ptr;
-}
-
-void *xrealloc(void *ptr, const size_t size)
-{
-    ptr = realloc(ptr, size);
-    if (ptr == NULL)
-    {
-        puts("Error reallocating memory.");
-        exit(EXIT_FAILURE);
-    }
-
-    return ptr;
 }
 
 void find_palindromes()
@@ -245,129 +231,31 @@ void find_palindromes()
 #undef STORE_PALINDROME
 }
 
-void radix(register uint_fast32_t array[], register const uint_fast32_t size)
+void *xmalloc(const size_t size)
 {
-
-    /* Support for variable sized integers without overflow warnings */
-    const int MAX_UINT = ((((1 << ((sizeof(uint_fast32_t) << 3) - 2)) - 1) << 1) + 1);
-    const int LAST_EXP = (sizeof(uint_fast32_t) - 1) << 3;
-
-    /* Define std preliminary, constrain and expression to check if all bytes are sorted */
-#define PRELIMINARY 100
-#define MISSING_BITS exp<(sizeof(uint_fast32_t) << 3) && (max >> exp)> 0
-    /* Check for biggest integer in [a, b[ array segment */
-#define LOOP_MAX(a, b)                             \
-    for (s = &array[a], k = &array[b]; s < k; ++s) \
-    {                                              \
-        if (*s > max)                              \
-        {                                          \
-            max = *s;                              \
-        }                                          \
-    }
-
-    /* b = helper array pointer ; s, k and i = array iterators */
-    /* exp = bits sorted, max = maximun range in array         */
-    /* point = array of pointers to the helper array           */
-    register uint_fast32_t *b, *s, *k;
-    register uint_fast32_t exp = 0;
-    register uint_fast32_t max = exp;
-    uint_fast32_t i, *point[0x100];
-    int swap = 0;
-
-    /* Set preliminary according to size */
-    const uint_fast32_t preliminary = (size > PRELIMINARY) ? PRELIMINARY : (size >> 3);
-
-    /* If we found a integer with more than 24 bits in preliminar, */
-    /* will have to sort all bytes either way, so max = MAX_UINT */
-    LOOP_MAX(1, preliminary);
-    if (max <= (MAX_UINT >> 7))
+    void *ptr = malloc(size);
+    if (ptr == NULL)
     {
-        LOOP_MAX(preliminary, size);
+        puts("Error allocating memory.");
+        exit(EXIT_FAILURE);
     }
 
-    /* Helper array initialization */
-    b = (uint_fast32_t *)malloc(sizeof(uint_fast32_t) * size);
+    return ptr;
+}
 
-    /* Core algorithm: for a specific byte, fill the buckets array, */
-    /* rearrange the array and reset the initial array accordingly. */
-#define SORT_BYTE(vec, bb, shift)                                        \
-    uint_fast32_t bucket[0x100] = {0};                                   \
-    register unsigned char *n = (unsigned char *)(vec) + (exp >> 3), *m; \
-    for (m = (unsigned char *)(&vec[size & 0xFFFFFFFC]); n < m;)         \
-    {                                                                    \
-        ++bucket[*n];                                                    \
-        n += sizeof(int);                                                \
-        ++bucket[*n];                                                    \
-        n += sizeof(int);                                                \
-        ++bucket[*n];                                                    \
-        n += sizeof(int);                                                \
-        ++bucket[*n];                                                    \
-        n += sizeof(int);                                                \
-    }                                                                    \
-    for (n = (unsigned char *)(&vec[size & 0xFFFFFFFC]) + (exp >> 3),    \
-        m = (unsigned char *)(&vec[size]);                               \
-         n < m;)                                                         \
-    {                                                                    \
-        ++bucket[*n];                                                    \
-        n += sizeof(int);                                                \
-    }                                                                    \
-    s = bb;                                                              \
-    int next = 0;                                                        \
-    for (i = 0; i < 0x100; ++i)                                          \
-    {                                                                    \
-        if (bucket[i] == size)                                           \
-        {                                                                \
-            next = 1;                                                    \
-            break;                                                       \
-        }                                                                \
-    }                                                                    \
-    if (next)                                                            \
-    {                                                                    \
-        exp += 8;                                                        \
-        continue;                                                        \
-    }                                                                    \
-    for (i = 0; i < 0x100; s += bucket[i++])                             \
-    {                                                                    \
-        point[i] = s;                                                    \
-    }                                                                    \
-    for (s = vec, k = &vec[size]; s < k; ++s)                            \
-    {                                                                    \
-        *point[(*s shift) & 0xFF]++ = *s;                                \
-    }                                                                    \
-    swap = 1 - swap;                                                     \
-    exp += 8;
-
-    /* Sort each byte (if needed) */
-    while (MISSING_BITS)
+void *xrealloc(void *ptr, const size_t size)
+{
+    ptr = realloc(ptr, size);
+    if (ptr == NULL)
     {
-        if (exp)
-        {
-            if (swap)
-            {
-                SORT_BYTE(b, array, >> exp);
-            }
-            else
-            {
-                SORT_BYTE(array, b, >> exp);
-            }
-        }
-        else
-        {
-            SORT_BYTE(array, b, );
-        }
+        puts("Error reallocating memory.");
+        exit(EXIT_FAILURE);
     }
 
-    if (swap)
-    {
-        memcpy(array, b, sizeof(uint_fast32_t) * size);
-    }
+    return ptr;
+}
 
-    /* Free helper array */
-    free(b);
-
-    /* Undefine function scoped macros for eventual later use */
-#undef PRELIMINARY
-#undef MISSING_BITS
-#undef LOOP_MAX
-#undef SORT_BYTE
+static inline int compare(const void *a, const void *b)
+{
+    return (*(const int *)a - *(const int *)b);
 }
