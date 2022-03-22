@@ -154,7 +154,7 @@ int main(void)
         }
 
         // Output the palindromes
-        printf("%11zi %13zi %14d\n", i, palindrome->length + 1, median_distance - 1);
+        printf("%11zi %13zi %14ld\n", i, palindrome->length + 1, median_distance - 1);
     }
 
     return EXIT_SUCCESS;
