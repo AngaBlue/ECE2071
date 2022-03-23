@@ -4,7 +4,7 @@
 		{
 			"type": "cppbuild",
 			"label": "C/C++: gcc.exe build active file",
-			"command": "C:\\msys64\\mingw64\\bin\\gcc.exe",
+			"command": "gcc",
 			"args": [
 				"-std=c17",
 				"-pedantic",
@@ -26,12 +26,12 @@
 				"kind": "build",
 				"isDefault": true
 			},
-			"detail": "compiler: C:\\msys64\\mingw64\\bin\\gcc.exe"
+			"detail": "compiler: gcc"
 		},
 		{
 			"type": "cppbuild",
 			"label": "C/C++: gcc.exe build active file (dist)",
-			"command": "C:\\msys64\\mingw64\\bin\\gcc.exe",
+			"command": "gcc",
 			"args": [
 				"-std=c17",
 				"-pedantic",
@@ -56,7 +56,7 @@
 				"kind": "build",
 				"isDefault": false
 			},
-			"detail": "compiler: C:\\msys64\\mingw64\\bin\\gcc.exe"
+			"detail": "compiler: gcc"
 		}
 	]
 }
