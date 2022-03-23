@@ -102,7 +102,7 @@ int main(void)
     }
 
     // Initialise palindrome lengths, allocating a predicted amount of memory
-    palindromes.length = log10(digits_length) * 2 + 1;
+    palindromes.length = (log10(digits_length) + 1) * 2;
     palindromes.values = (Palindrome *)xmalloc(palindromes.length * sizeof(Palindrome));
 
     // Initialize new palindrome length
@@ -128,7 +128,10 @@ int main(void)
     {
         Palindrome *palindrome = &palindromes.values[i];
 
-        if (palindrome->length == 0) continue;
+        if (palindrome->length == 0) {
+            printf("%11zi %13zi %14ld\n", i, 0, 0);
+            break;
+        }
 
         // Find median distance
         uint_fast32_t median_distance;
