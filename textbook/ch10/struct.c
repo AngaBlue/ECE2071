@@ -7,3 +7,11 @@ struct employee
     double hourlySalary;
     struct employee *teamLeader;
 };
+
+struct card
+{
+    char *face;
+    char *suit;
+};
+
+struct card a_card = {"Queen", "Hearts"};
