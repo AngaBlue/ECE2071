@@ -30,7 +30,7 @@ typedef struct
 
 /**
  * @brief Loads the digits from the file
- * 
+ *
  * @param filename The name of the file to load
  * @param content A pointer to the pointer of the string to store the digits in
  * @param length A pointer to the size of the string
@@ -45,10 +45,10 @@ static inline void find_palindromes();
 
 /**
  * @brief Finds the median of an array using a modified counting sort
- * 
+ *
  * @param array The array to find the median of
  * @param size The size of the array
- * @return uint_fast32_t 
+ * @return uint_fast32_t
  */
 static inline uint_fast32_t counting_median(const uint_fast32_t *const array, register const uint_fast32_t size);
 
@@ -128,7 +128,8 @@ int main(void)
     {
         Palindrome *palindrome = &palindromes.values[i];
 
-        if (palindrome->length == 0) {
+        if (palindrome->length == 0)
+        {
             printf("%11zi %13zi %14ld\n", i, 0, 0);
             break;
         }
@@ -248,7 +249,6 @@ static inline void find_palindromes()
     }
 
     free(digits);
-
 #undef STORE_PALINDROME
 }
 
