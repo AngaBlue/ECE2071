@@ -284,13 +284,14 @@ static inline uint_fast32_t counting_median(const uint_fast32_t *const array, re
         if (total >= target)
         {
             // Median found
-            free(buckets);
+            // Freeing buckets has a 20% chance of crashing on lab computers, so we'll just leak a bit of memory :(
+            // free(buckets);
             return i;
         }
     }
 
     // Median not found
-    free(buckets);
+    // free(buckets);
     return 0;
 }
 
