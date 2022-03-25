@@ -130,7 +130,7 @@ int main(void)
 
         if (palindrome->length == 0)
         {
-            printf("%11zi %13zi %14ld\n", i, 0, 0);
+            printf("%11zi %13zi %14c\n", i, 0, '-');
             break;
         }
 
