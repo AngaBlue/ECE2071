@@ -339,33 +339,6 @@ static inline void print_points(const PointNode *top, const uint_fast32_t length
     }
 }
 
-static inline void print_maze(const uint_fast32_t *const maze, const uint_fast32_t size)
-{
-    puts("\n");
-    for (register uint_fast32_t i = 0; i < size; i++)
-    {
-        for (register uint_fast32_t j = 0; j < size; j++)
-        {
-            if (maze[i * size + j] == 0)
-            {
-                printf("%c", '#');
-            }
-            else
-            {
-                if (maze[i * size + j] == UINT32_MAX)
-                {
-                    printf("%c", '.');
-                }
-                else
-                {
-                    printf("%d", maze[i * size + j] % 10);
-                }
-            }
-        }
-        printf("\n");
-    }
-}
-
 void *xmalloc(const size_t size)
 {
     void *ptr = malloc(size);
