@@ -65,6 +65,7 @@ static inline void load_maze(const char *const file_name, uint_fast32_t **const 
  * @param start The start of the maze
  * @param target The target of the maze
  * @param path A pointer to the top most node on the solution path
+ * @param length A pointer to the size of the solution path
  */
 static inline void solve_maze(register uint_fast32_t *const maze, register const uint_fast32_t size, register const Point start, register const Point target, register PointNode **path, uint_fast32_t *length);
 
@@ -76,38 +77,20 @@ static inline void solve_maze(register uint_fast32_t *const maze, register const
 static inline void print_points(const PointNode *top, const uint_fast32_t length);
 
 /**
+ * @brief Prints a maze to the console
+ *
+ * @param maze The maze to print
+ * @param size The size of the maze
+ */
+static inline void print_maze(const uint_fast32_t *const maze, const uint_fast32_t size);
+
+/**
  * @brief Safely allocates memory
  *
  * @param size Size of the new memory
  * @return void* Pointer to the new memory
  */
 void *xmalloc(const size_t size);
-
-static inline void print_maze(const uint_fast32_t *const maze, const uint_fast32_t size)
-{
-    for (register uint_fast32_t i = 0; i < size; i++)
-    {
-        for (register uint_fast32_t j = 0; j < size; j++)
-        {
-            if (maze[i * size + j] == 0)
-            {
-                printf("%c", '#');
-            }
-            else
-            {
-                if (maze[i * size + j] == UINT32_MAX)
-                {
-                    printf("%c", '.');
-                }
-                else
-                {
-                    printf("%d", maze[i * size + j] % 10);
-                }
-            }
-        }
-        printf("\n");
-    }
-}
 
 int main(int argc, char const *argv[])
 {
@@ -122,7 +105,7 @@ int main(int argc, char const *argv[])
     load_maze(file_name, &maze, &size, &start, &target);
 
     printf("Loaded %dx%d maze from %s\n", size, size, file_name);
-    printf("Pathfinding from (%d, %d) to (%d, %d)...\n", start.x, start.y, target.x, target.y);
+    printf("Pathfinding from S (%d, %d) to T (%d, %d)...\n", start.x + 1, start.y + 1, target.x + 1, target.y + 1);
 
     // Solve maze & print results
     PointNode *path = NULL;
@@ -203,9 +186,7 @@ static inline void load_maze(const char *const file_name, uint_fast32_t **const 
 static inline void solve_maze(register uint_fast32_t *const maze, register const uint_fast32_t size, register const Point start, register const Point target, register PointNode **path, uint_fast32_t *length)
 {
     // Point Queue
-    register PointQueue queue = {
-        .head = NULL,
-        .tail = NULL};
+    register PointQueue queue = {NULL, NULL};
 
     // Create the start node
     queue.head = queue.tail = (PointNode *)xmalloc(sizeof(PointNode));
@@ -232,6 +213,7 @@ static inline void solve_maze(register uint_fast32_t *const maze, register const
         if (node->x == target.x && node->y == target.y)
         {
             *path = node;
+            (*path)->next = NULL;
             *length = node->distance;
             break;
         }
@@ -264,7 +246,7 @@ static inline void solve_maze(register uint_fast32_t *const maze, register const
             if (x != UINT32_MAX && x < size && y != UINT32_MAX && y < size && maze[x + y * size] > node->distance)
             {
                 // Create the adjacent node
-                register PointNode *const adjacent = (PointNode *)xmalloc(sizeof(PointNode));
+                PointNode *const adjacent = (PointNode *)xmalloc(sizeof(PointNode));
                 adjacent->x = x;
                 adjacent->y = y;
                 adjacent->distance = maze[x + y * size] = node->distance + 1;
@@ -298,7 +280,7 @@ static inline void solve_maze(register uint_fast32_t *const maze, register const
     {
         node = *path;
         // Check all adjacent nodes
-        for (i = 0; i < 4; i++)
+        for (i = 0; i < 4; ++i)
         {
             // Get the adjacent node
             switch (i)
@@ -322,7 +304,7 @@ static inline void solve_maze(register uint_fast32_t *const maze, register const
             }
 
             // Find smaller node
-            if (x != UINT32_MAX && x < size && y != UINT32_MAX && y < size && (maze[x + y * size] < node->distance && maze[x + y * size] != 0) || (x == start.x && y == start.y))
+            if (x != UINT32_MAX && x < size && y != UINT32_MAX && y < size && (maze[x + y * size] == node->distance - 1 && maze[x + y * size] != 0) || (x == start.x && y == start.y))
             {
                 // Create the new node
                 PointNode *const new_node = (PointNode *)xmalloc(sizeof(PointNode));
@@ -344,34 +326,49 @@ static inline void print_points(const PointNode *top, const uint_fast32_t length
 {
     if (top == NULL)
     {
-        printf("No path found\n");
+        printf("No path found.\n");
     }
     else
     {
         printf("The shortest path is %d steps long\n", length);
         do
         {
-            printf("%d,%d ", top->x, top->y);
+            printf("%d,%d ", top->x + 1, top->y + 1);
             top = top->next;
         } while (top != NULL);
+    }
+}
+
+static inline void print_maze(const uint_fast32_t *const maze, const uint_fast32_t size)
+{
+    puts("\n");
+    for (register uint_fast32_t i = 0; i < size; i++)
+    {
+        for (register uint_fast32_t j = 0; j < size; j++)
+        {
+            if (maze[i * size + j] == 0)
+            {
+                printf("%c", '#');
+            }
+            else
+            {
+                if (maze[i * size + j] == UINT32_MAX)
+                {
+                    printf("%c", '.');
+                }
+                else
+                {
+                    printf("%d", maze[i * size + j] % 10);
+                }
+            }
+        }
+        printf("\n");
     }
 }
 
 void *xmalloc(const size_t size)
 {
     void *ptr = malloc(size);
-    if (ptr == NULL)
-    {
-        puts("Error allocating memory.");
-        exit(EXIT_FAILURE);
-    }
-
-    return ptr;
-}
-
-void *xcalloc(const size_t length, const size_t element_size)
-{
-    void *ptr = calloc(length, element_size);
     if (ptr == NULL)
     {
         puts("Error allocating memory.");
