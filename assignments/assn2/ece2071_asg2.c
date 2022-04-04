@@ -73,6 +73,7 @@ static inline void solve_maze(register uint_fast32_t *const maze, register const
  * @brief Prints a stack of points to the console
  *
  * @param top The top of the stack
+ * @param length The size of the stack
  */
 static inline void print_points(const PointNode *top, const uint_fast32_t length);
 
@@ -105,7 +106,7 @@ int main(int argc, char const *argv[])
     load_maze(file_name, &maze, &size, &start, &target);
 
     printf("Loaded %dx%d maze from %s\n", size, size, file_name);
-    printf("Pathfinding from S (%d, %d) to T (%d, %d)...\n", start.x + 1, start.y + 1, target.x + 1, target.y + 1);
+    printf("Pathfinding from S (%d,%d) to T (%d,%d)...\n", start.x + 1, start.y + 1, target.x + 1, target.y + 1);
 
     // Solve maze & print results
     PointNode *path = NULL;
@@ -129,7 +130,6 @@ static inline void read_args(const int argc, const char const *argv[], char **co
     // Copy file name
     *file_name = xmalloc(strlen(argv[1]) + 1);
     strcpy(*file_name, argv[1]);
-    return;
 }
 
 static inline void load_maze(const char *const file_name, uint_fast32_t **const maze, uint_fast32_t *const size, Point *const start, Point *const target)
@@ -180,7 +180,6 @@ static inline void load_maze(const char *const file_name, uint_fast32_t **const 
     }
 
     fclose(file);
-    return;
 }
 
 static inline void solve_maze(register uint_fast32_t *const maze, register const uint_fast32_t size, register const Point start, register const Point target, register PointNode **path, uint_fast32_t *length)
@@ -195,10 +194,31 @@ static inline void solve_maze(register uint_fast32_t *const maze, register const
     queue.head->distance = 0;
     queue.head->next = NULL;
 
+    // Adjacent node macro
+#define ADJACENT_NODE    \
+    switch (i)           \
+    {                    \
+    case 0:              \
+        x = node->x + 1; \
+        y = node->y;     \
+        break;           \
+    case 1:              \
+        x = node->x;     \
+        y = node->y - 1; \
+        break;           \
+    case 2:              \
+        x = node->x - 1; \
+        y = node->y;     \
+        break;           \
+    case 3:              \
+        x = node->x;     \
+        y = node->y + 1; \
+        break;           \
+    }
+
     // Search the queue
     register PointNode *node;
-    register uint_fast32_t x, y;
-    register uint_fast32_t i;
+    register uint_fast32_t i, x, y;
     while (queue.head != NULL)
     {
         // Pop the head
@@ -212,8 +232,8 @@ static inline void solve_maze(register uint_fast32_t *const maze, register const
         // Check if the node is the target
         if (node->x == target.x && node->y == target.y)
         {
+            node->next = NULL;
             *path = node;
-            (*path)->next = NULL;
             *length = node->distance;
             break;
         }
@@ -222,25 +242,7 @@ static inline void solve_maze(register uint_fast32_t *const maze, register const
         for (i = 0; i < 4; ++i)
         {
             // Get the adjacent node
-            switch (i)
-            {
-            case 0:
-                x = node->x + 1;
-                y = node->y;
-                break;
-            case 1:
-                x = node->x;
-                y = node->y - 1;
-                break;
-            case 2:
-                x = node->x - 1;
-                y = node->y;
-                break;
-            case 3:
-                x = node->x;
-                y = node->y + 1;
-                break;
-            }
+            ADJACENT_NODE
 
             // Check if the node is valid
             if (x != UINT32_MAX && x < size && y != UINT32_MAX && y < size && maze[x + y * size] > node->distance)
@@ -275,7 +277,7 @@ static inline void solve_maze(register uint_fast32_t *const maze, register const
         return;
     }
 
-    // Reverse traversal of the path
+    // Reverse traversal of the path until start is met
     while ((*path)->x != start.x || (*path)->y != start.y)
     {
         node = *path;
@@ -283,25 +285,7 @@ static inline void solve_maze(register uint_fast32_t *const maze, register const
         for (i = 0; i < 4; ++i)
         {
             // Get the adjacent node
-            switch (i)
-            {
-            case 0:
-                x = node->x + 1;
-                y = node->y;
-                break;
-            case 1:
-                x = node->x;
-                y = node->y - 1;
-                break;
-            case 2:
-                x = node->x - 1;
-                y = node->y;
-                break;
-            case 3:
-                x = node->x;
-                y = node->y + 1;
-                break;
-            }
+            ADJACENT_NODE
 
             // Find smaller node
             if (x != UINT32_MAX && x < size && y != UINT32_MAX && y < size && (maze[x + y * size] == node->distance - 1 && maze[x + y * size] != 0) || (x == start.x && y == start.y))
@@ -317,9 +301,6 @@ static inline void solve_maze(register uint_fast32_t *const maze, register const
             }
         }
     }
-
-    // Found shortest path
-    return;
 }
 
 static inline void print_points(const PointNode *top, const uint_fast32_t length)
