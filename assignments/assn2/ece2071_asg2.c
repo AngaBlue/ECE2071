@@ -78,14 +78,6 @@ static inline void solve_maze(register uint_fast32_t *const maze, register const
 static inline void print_points(const PointNode *top, const uint_fast32_t length);
 
 /**
- * @brief Prints a maze to the console
- *
- * @param maze The maze to print
- * @param size The size of the maze
- */
-static inline void print_maze(const uint_fast32_t *const maze, const uint_fast32_t size);
-
-/**
  * @brief Safely allocates memory
  *
  * @param size Size of the new memory
