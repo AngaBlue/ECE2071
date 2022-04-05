@@ -194,26 +194,36 @@ static inline void solve_maze(register uint_fast32_t *const maze, register const
     queue.head->distance = 0;
     queue.head->next = NULL;
 
-    // Adjacent node macro
-#define ADJACENT_NODE    \
-    switch (i)           \
-    {                    \
-    case 0:              \
-        x = node->x + 1; \
-        y = node->y;     \
-        break;           \
-    case 1:              \
-        x = node->x;     \
-        y = node->y - 1; \
-        break;           \
-    case 2:              \
-        x = node->x - 1; \
-        y = node->y;     \
-        break;           \
-    case 3:              \
-        x = node->x;     \
-        y = node->y + 1; \
-        break;           \
+    // Adjacent node macro, skip cells that fall outside the bounds
+#define ADJACENT_NODE     \
+    switch (i)            \
+    {                     \
+    case 0:               \
+        x = node->x + 1;  \
+        if (x == size)    \
+            continue;     \
+        y = node->y;      \
+        break;            \
+    case 1:               \
+        if (node->y == 0) \
+            continue;     \
+        ;                 \
+        x = node->x;      \
+        y = node->y - 1;  \
+        break;            \
+    case 2:               \
+        if (node->x == 0) \
+            continue;     \
+        ;                 \
+        x = node->x - 1;  \
+        y = node->y;      \
+        break;            \
+    case 3:               \
+        y = node->y + 1;  \
+        if (y == size)    \
+            continue;     \
+        x = node->x;      \
+        break;            \
     }
 
     // Search the queue
@@ -245,7 +255,7 @@ static inline void solve_maze(register uint_fast32_t *const maze, register const
             ADJACENT_NODE
 
             // Check if the node is valid
-            if (x != UINT32_MAX && x < size && y != UINT32_MAX && y < size && maze[x + y * size] > node->distance)
+            if (maze[x + y * size] > node->distance)
             {
                 // Create the adjacent node
                 PointNode *const adjacent = (PointNode *)xmalloc(sizeof(PointNode));
@@ -287,8 +297,8 @@ static inline void solve_maze(register uint_fast32_t *const maze, register const
             // Get the adjacent node
             ADJACENT_NODE
 
-            // Find smaller node
-            if (x != UINT32_MAX && x < size && y != UINT32_MAX && y < size && (maze[x + y * size] == node->distance - 1 && maze[x + y * size] != 0) || (x == start.x && y == start.y))
+            // Find smaller (non-zero) node or start node
+            if ((maze[x + y * size] == node->distance - 1 && maze[x + y * size] != 0) || (x == start.x && y == start.y))
             {
                 // Create the new node
                 PointNode *const new_node = (PointNode *)xmalloc(sizeof(PointNode));
