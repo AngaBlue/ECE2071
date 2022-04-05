@@ -1,2 +1,4 @@
 *.exe
 x64
+maze_10000x10000.txt
+out.txt
