@@ -98,7 +98,7 @@ int main(int argc, char const *argv[])
     load_maze(file_name, &maze, &size, &start, &target);
 
     printf("Loaded %dx%d maze from %s\n", size, size, file_name);
-    printf("Pathfinding from S (%d,%d) to T (%d,%d)...\n", start.x + 1, start.y + 1, target.x + 1, target.y + 1);
+    printf("Pathfinding from S (%d,%d) to T (%d,%d)...\n", start.y + 1, start.x + 1, target.y + 1, target.x + 1);
 
     // Solve maze & print results
     PointNode *path = NULL;
@@ -135,18 +135,20 @@ static inline void load_maze(const char *const file_name, uint_fast32_t **const 
 
     // Read the size of the maze
     fseek(file, 0, SEEK_END);
-    *size = floor(sqrt(ftell(file)));
+    uint_fast32_t file_size = ftell(file);
+    *size = floor(sqrt(file_size));
     fseek(file, 0, SEEK_SET);
 
-    // Allocate memory for the maze
+    // Allocate memory for the file & maze
+    char *file_data = xmalloc(file_size);
     *maze = (uint_fast32_t *)xmalloc(*size * *size * sizeof(uint_fast32_t));
 
-    // Read character by character from file and construct the maze
-    register size_t i = 0;
-    register char c;
-    while ((c = fgetc(file)) != EOF)
+    // Read file and construct the maze
+    fread(file_data, file_size, 1, file);
+    register size_t i = 0, j = 0;
+    for (j = 0; j < file_size; ++j)
     {
-        switch (c)
+        switch (file_data[j])
         {
         case '#':
             // Wall
@@ -171,6 +173,7 @@ static inline void load_maze(const char *const file_name, uint_fast32_t **const 
         }
     }
 
+    free(file_data);
     fclose(file);
 }
 
@@ -316,7 +319,7 @@ static inline void print_points(const PointNode *top, const uint_fast32_t length
         printf("The shortest path is %d steps long\n", length);
         do
         {
-            printf("%d,%d ", top->x + 1, top->y + 1);
+            printf("%d,%d ", top->y + 1, top->x + 1);
             top = top->next;
         } while (top != NULL);
     }
