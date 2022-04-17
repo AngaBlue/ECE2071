@@ -13,28 +13,27 @@
 #include <string.h>
 #include <math.h>
 #include <limits.h>
-#include <stdbool.h>
 
 #define PROGRAM_NAME "ece2071_asg2"
+#define WALL_CHAR '#'
+#define PATH_CHAR '.'
+#define SOURCE_CHAR 'S'
+#define TARGET_CHAR 'T'
 
-typedef struct
+typedef struct Point
 {
-    uint_fast32_t x;
-    uint_fast32_t y;
+    uint_fast32_t x, y;
 } Point;
 
 typedef struct PointNode
 {
-    uint_fast32_t x;
-    uint_fast32_t y;
-    uint_fast32_t distance;
+    uint_fast32_t x, y, distance;
     struct PointNode *next;
 } PointNode;
 
 typedef struct PointQueue
 {
-    PointNode *head;
-    PointNode *tail;
+    PointNode *head, *tail;
 } PointQueue;
 
 /**
@@ -65,17 +64,8 @@ static inline void load_maze(const char *const file_name, uint_fast32_t **const 
  * @param start The start of the maze
  * @param target The target of the maze
  * @param path A pointer to the top most node on the solution path
- * @param length A pointer to the size of the solution path
  */
-static inline void solve_maze(register uint_fast32_t *const maze, register const uint_fast32_t size, register const Point start, register const Point target, register PointNode **path, uint_fast32_t *length);
-
-/**
- * @brief Prints a stack of points to the console
- *
- * @param top The top of the stack
- * @param length The size of the stack
- */
-static inline void print_points(const PointNode *top, const uint_fast32_t length);
+static inline void solve_maze(uint_fast32_t *const maze, register const uint_fast32_t size, register const Point start, register const Point target, PointNode **path);
 
 /**
  * @brief Safely allocates memory
@@ -83,7 +73,7 @@ static inline void print_points(const PointNode *top, const uint_fast32_t length
  * @param size Size of the new memory
  * @return void* Pointer to the new memory
  */
-void *xmalloc(const size_t size);
+static inline void *xmalloc(const size_t size);
 
 int main(int argc, char const *argv[])
 {
@@ -97,14 +87,9 @@ int main(int argc, char const *argv[])
     Point start, target;
     load_maze(file_name, &maze, &size, &start, &target);
 
-    printf("Loaded %dx%d maze from %s\n", size, size, file_name);
-    printf("Pathfinding from S (%d,%d) to T (%d,%d)...\n", start.y + 1, start.x + 1, target.y + 1, target.x + 1);
-
     // Solve maze & print results
     PointNode *path = NULL;
-    uint_fast32_t length;
-    solve_maze(maze, size, start, target, &path, &length);
-    print_points(path, length);
+    solve_maze(maze, size, start, target, &path);
 
     return EXIT_SUCCESS;
 }
@@ -145,27 +130,23 @@ static inline void load_maze(const char *const file_name, uint_fast32_t **const 
 
     // Read file and construct the maze
     fread(file_data, file_size, 1, file);
-    register size_t i = 0, j = 0;
+    register size_t i = 0, j;
     for (j = 0; j < file_size; ++j)
     {
         switch (file_data[j])
         {
-        case '#':
-            // Wall
+        case WALL_CHAR:
             (*maze)[i++] = 0;
             break;
-        case '.':
-            // Path
+        case PATH_CHAR:
             (*maze)[i++] = UINT32_MAX;
             break;
-        case 'S':
-            // Start
+        case SOURCE_CHAR:
             start->x = i % *size;
             start->y = i / *size;
             (*maze)[i++] = 0;
             break;
-        case 'T':
-            // Target
+        case TARGET_CHAR:
             target->x = i % *size;
             target->y = i / *size;
             (*maze)[i++] = UINT32_MAX;
@@ -177,10 +158,11 @@ static inline void load_maze(const char *const file_name, uint_fast32_t **const 
     fclose(file);
 }
 
-static inline void solve_maze(register uint_fast32_t *const maze, register const uint_fast32_t size, register const Point start, register const Point target, register PointNode **path, uint_fast32_t *length)
+static inline void solve_maze(uint_fast32_t *const maze, register const uint_fast32_t size, register const Point start, register const Point target, PointNode **path)
 {
     // Point Queue
     register PointQueue queue = {NULL, NULL};
+    uint_fast32_t length;
 
     // Create the start node
     queue.head = queue.tail = (PointNode *)xmalloc(sizeof(PointNode));
@@ -239,7 +221,7 @@ static inline void solve_maze(register uint_fast32_t *const maze, register const
         {
             node->next = NULL;
             *path = node;
-            *length = node->distance;
+            length = node->distance;
             break;
         }
 
@@ -279,6 +261,7 @@ static inline void solve_maze(register uint_fast32_t *const maze, register const
     // If target was never found
     if (*path == NULL)
     {
+        puts("No path found.");
         return;
     }
 
@@ -295,7 +278,10 @@ static inline void solve_maze(register uint_fast32_t *const maze, register const
             // Find smaller (non-zero) node or start node
             if ((maze[x + y * size] == node->distance - 1 && maze[x + y * size] != 0) || (x == start.x && y == start.y))
             {
-                // Create the new node
+                // Print path
+                printf("%d,%d", y + 1, x + 1);
+
+                // Create pointless stack
                 PointNode *const new_node = (PointNode *)xmalloc(sizeof(PointNode));
                 new_node->x = x;
                 new_node->y = y;
@@ -308,24 +294,7 @@ static inline void solve_maze(register uint_fast32_t *const maze, register const
     }
 }
 
-static inline void print_points(const PointNode *top, const uint_fast32_t length)
-{
-    if (top == NULL)
-    {
-        printf("No path found.\n");
-    }
-    else
-    {
-        printf("The shortest path is %d steps long\n", length);
-        do
-        {
-            printf("%d,%d ", top->y + 1, top->x + 1);
-            top = top->next;
-        } while (top != NULL);
-    }
-}
-
-void *xmalloc(const size_t size)
+static inline void *xmalloc(const size_t size)
 {
     void *ptr = malloc(size);
     if (ptr == NULL)
