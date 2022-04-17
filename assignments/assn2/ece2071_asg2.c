@@ -22,12 +22,12 @@
 
 typedef struct Point
 {
-    uint_fast32_t x, y;
+    uint_fast32_t row, col;
 } Point;
 
 typedef struct PointNode
 {
-    uint_fast32_t x, y, distance;
+    uint_fast32_t row, col, distance;
     struct PointNode *next;
 } PointNode;
 
@@ -121,7 +121,7 @@ static inline void load_maze(const char *const file_name, uint_fast32_t **const 
 
     // Read the size of the maze
     fseek(file, 0, SEEK_END);
-    uint_fast32_t file_size = ftell(file);
+    register uint_fast32_t file_size = ftell(file);
     *size = floor(sqrt(file_size));
     fseek(file, 0, SEEK_SET);
 
@@ -143,13 +143,13 @@ static inline void load_maze(const char *const file_name, uint_fast32_t **const 
             (*maze)[i++] = UINT32_MAX;
             break;
         case SOURCE_CHAR:
-            start->x = i % *size;
-            start->y = i / *size;
+            start->row = i / *size;
+            start->col = i % *size;
             (*maze)[i++] = 0;
             break;
         case TARGET_CHAR:
-            target->x = i % *size;
-            target->y = i / *size;
+            target->row = i / *size;
+            target->col = i % *size;
             (*maze)[i++] = UINT32_MAX;
             break;
         }
@@ -163,50 +163,48 @@ static inline void solve_maze(uint_fast32_t *const maze, register const uint_fas
 {
     // Point Queue
     register PointQueue queue = {NULL, NULL};
-    uint_fast32_t length;
+    register uint_fast32_t length;
 
     // Create the start node
     queue.head = queue.tail = (PointNode *)xmalloc(sizeof(PointNode));
-    queue.head->x = start.x;
-    queue.head->y = start.y;
+    queue.head->row = start.row;
+    queue.head->col = start.col;
     queue.head->distance = 0;
     queue.head->next = NULL;
 
     // Adjacent node macro, skip cells that fall outside the bounds
-#define ADJACENT_NODE     \
-    switch (i)            \
-    {                     \
-    case 0:               \
-        x = node->x + 1;  \
-        if (x == size)    \
-            continue;     \
-        y = node->y;      \
-        break;            \
-    case 1:               \
-        if (node->y == 0) \
-            continue;     \
-        ;                 \
-        x = node->x;      \
-        y = node->y - 1;  \
-        break;            \
-    case 2:               \
-        if (node->x == 0) \
-            continue;     \
-        ;                 \
-        x = node->x - 1;  \
-        y = node->y;      \
-        break;            \
-    case 3:               \
-        y = node->y + 1;  \
-        if (y == size)    \
-            continue;     \
-        x = node->x;      \
-        break;            \
+#define ADJACENT_NODE        \
+    switch (i)               \
+    {                        \
+    case 0:                  \
+        col = node->col + 1; \
+        if (col == size)     \
+            continue;        \
+        row = node->row;     \
+        break;               \
+    case 1:                  \
+        if (node->row == 0)  \
+            continue;        \
+        row = node->row - 1; \
+        col = node->col;     \
+        break;               \
+    case 2:                  \
+        if (node->col == 0)  \
+            continue;        \
+        row = node->row;     \
+        col = node->col - 1; \
+        break;               \
+    case 3:                  \
+        row = node->row + 1; \
+        if (row == size)     \
+            continue;        \
+        col = node->col;     \
+        break;               \
     }
 
     // Search the queue
     register PointNode *node;
-    register uint_fast32_t i, x, y;
+    register uint_fast32_t i, row, col;
     while (queue.head != NULL)
     {
         // Pop the head
@@ -218,7 +216,7 @@ static inline void solve_maze(uint_fast32_t *const maze, register const uint_fas
         }
 
         // Check if the node is the target
-        if (node->x == target.x && node->y == target.y)
+        if (node->row == target.row && node->col == target.col)
         {
             node->next = NULL;
             *path = node;
@@ -233,13 +231,13 @@ static inline void solve_maze(uint_fast32_t *const maze, register const uint_fas
             ADJACENT_NODE
 
             // Check if the node is valid
-            if (maze[x + y * size] > node->distance)
+            if (maze[row * size + col] > node->distance)
             {
                 // Create the adjacent node
                 PointNode *const adjacent = (PointNode *)xmalloc(sizeof(PointNode));
-                adjacent->x = x;
-                adjacent->y = y;
-                adjacent->distance = maze[x + y * size] = node->distance + 1;
+                adjacent->row = row;
+                adjacent->col = col;
+                adjacent->distance = maze[row * size + col] = node->distance + 1;
                 adjacent->next = NULL;
 
                 // Add the adjacent node to the queue
@@ -267,7 +265,8 @@ static inline void solve_maze(uint_fast32_t *const maze, register const uint_fas
     }
 
     // Reverse traversal of the path until start is met
-    while ((*path)->x != start.x || (*path)->y != start.y)
+    printf("%d,%d", target.row + 1, target.col + 1);
+    while ((*path)->row != start.row || (*path)->col != start.col)
     {
         node = *path;
         // Check all adjacent nodes
@@ -277,16 +276,16 @@ static inline void solve_maze(uint_fast32_t *const maze, register const uint_fas
             ADJACENT_NODE
 
             // Find smaller (non-zero) node or start node
-            if ((maze[x + y * size] == node->distance - 1 && maze[x + y * size] != 0) || (x == start.x && y == start.y))
+            if ((maze[row * size + col] == node->distance - 1 && maze[row * size + col] != 0) || (row == start.row && col == start.col))
             {
                 // Print path
-                printf("%d,%d ", y + 1, x + 1);
+                printf(" %d,%d", row + 1, col + 1);
 
                 // Create pointless stack
                 PointNode *const new_node = (PointNode *)xmalloc(sizeof(PointNode));
-                new_node->x = x;
-                new_node->y = y;
-                new_node->distance = maze[x + y * size];
+                new_node->row = row;
+                new_node->col = col;
+                new_node->distance = maze[row * size + col];
                 new_node->next = *path;
                 *path = new_node;
                 break;
