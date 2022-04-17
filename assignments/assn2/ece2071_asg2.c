@@ -82,6 +82,7 @@ int main(int argc, char const *argv[])
     read_args(argc, argv, &file_name);
 
     // Store the maze as flattened array, where 0 denotes a wall and non-zero denotes a path
+    // This will reduce comparisons when solving the maze
     uint_fast32_t size;
     uint_fast32_t *maze;
     Point start, target;
@@ -279,7 +280,7 @@ static inline void solve_maze(uint_fast32_t *const maze, register const uint_fas
             if ((maze[x + y * size] == node->distance - 1 && maze[x + y * size] != 0) || (x == start.x && y == start.y))
             {
                 // Print path
-                printf("%d,%d", y + 1, x + 1);
+                printf("%d,%d ", y + 1, x + 1);
 
                 // Create pointless stack
                 PointNode *const new_node = (PointNode *)xmalloc(sizeof(PointNode));
