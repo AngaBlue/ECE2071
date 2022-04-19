@@ -1,7 +1,9 @@
+#include <stdio.h>
+
 int fact(int n);
 
-int main() {
-    printf("%d", factorial(5));
+int main(void) {
+    printf("%d", fact(5));
 }
 
 int fact(int n) {
