@@ -1,3 +1,14 @@
+main:
+    addi    $a0,    $zero,  5       # Calculate 5!
+    jal     fact
+    # Print
+    move    $a0,    $v0
+    li      $v0,    1
+    syscall
+    # Exit
+    li      $v0,    10              # Terminate program run and exit
+    syscall                         
+
 fact:
     subi    $sp,    $sp,    8       # Store 2 registers on the stack
     sw      $ra,    4($sp)
@@ -8,7 +19,8 @@ fact:
     lw      $a0,    0($sp)          # Restore registers from stack
     lw      $ra,    4($sp)
     addi    $sp,    $sp,    8       # Pop stack
-    mult    $v0,    $a0,    $v0     # Multiply n by result
+    mult    $v0,    $a0             # Multiply n by result
+    mflo    $v0
     jr      $ra
 L1:                                 # n <= 1
     addi    $v0,    $zero,  1       # Return 1
