@@ -102,7 +102,7 @@ int main(void)
     }
 
     // Initialise palindrome lengths, allocating a predicted amount of memory
-    palindromes.length = (log10(digits_length) + 1) * 2;
+    palindromes.length = (log10(digits_length) + 1) * 2 + 5;
     palindromes.values = (Palindrome *)xmalloc(palindromes.length * sizeof(Palindrome));
 
     // Initialize new palindrome length
@@ -111,7 +111,7 @@ int main(void)
         Palindrome *palindrome = &palindromes.values[i];
 
         // Predict length of palindrome and allocate memory
-        uint_fast32_t predicted_length = ceil((digits_length / pow(10, (int)i / 2) * 1.1));
+        uint_fast32_t predicted_length = ceil((digits_length / pow(10, (int)i / 2) * 1.2)) + 10;
         palindrome->distances = (uint_fast32_t *)xmalloc(predicted_length * sizeof(uint_fast32_t));
         palindrome->length = 0;
         palindrome->last_index = 0;
