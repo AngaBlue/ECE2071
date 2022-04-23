@@ -123,7 +123,7 @@ static inline void load_maze(const char *const file_name, uint_fast32_t **const 
     fseek(file, 0, SEEK_END);
     register uint_fast32_t file_size = ftell(file);
     *size = floor(sqrt(file_size));
-    fseek(file, 0, SEEK_SET);
+    rewind(file);
 
     // Allocate memory for the file & maze
     char *file_data = xmalloc(file_size);
@@ -204,6 +204,7 @@ static inline void solve_maze(uint_fast32_t *const maze, register const uint_fas
 
     // Search the queue
     register PointNode *node;
+    register size_t index;
     register uint_fast32_t i, row, col;
     while (queue.head != NULL)
     {
@@ -231,13 +232,14 @@ static inline void solve_maze(uint_fast32_t *const maze, register const uint_fas
             ADJACENT_NODE
 
             // Check if the node is valid
-            if (maze[row * size + col] > node->distance)
+            index = row * size + col;
+            if (maze[index] > node->distance)
             {
                 // Create the adjacent node
                 PointNode *const adjacent = (PointNode *)xmalloc(sizeof(PointNode));
                 adjacent->row = row;
                 adjacent->col = col;
-                adjacent->distance = maze[row * size + col] = node->distance + 1;
+                adjacent->distance = maze[index] = node->distance + 1;
                 adjacent->next = NULL;
 
                 // Add the adjacent node to the queue
@@ -276,7 +278,8 @@ static inline void solve_maze(uint_fast32_t *const maze, register const uint_fas
             ADJACENT_NODE
 
             // Find smaller (non-zero) node or start node
-            if ((maze[row * size + col] == node->distance - 1 && maze[row * size + col] != 0) || (row == start.row && col == start.col))
+            index = row * size + col;
+            if ((maze[index] == node->distance - 1 && maze[index] != 0) || (row == start.row && col == start.col))
             {
                 // Print path
                 printf(" %d,%d", row + 1, col + 1);
@@ -285,7 +288,7 @@ static inline void solve_maze(uint_fast32_t *const maze, register const uint_fas
                 PointNode *const new_node = (PointNode *)xmalloc(sizeof(PointNode));
                 new_node->row = row;
                 new_node->col = col;
-                new_node->distance = maze[row * size + col];
+                new_node->distance = maze[index];
                 new_node->next = *path;
                 *path = new_node;
                 break;
