@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${fileDirname}\\${fileBasenameNoExtension}.exe",
-            "args": ["maze_13X13.txt"],
+            "args": ["maze_10000x10000.txt"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
