@@ -221,7 +221,7 @@ static inline void solve_maze(uint_fast32_t *const maze, register const uint_fas
             node->next = NULL;
             current.row = node->row;
             current.col = node->col;
-            length = node->distance - 1;
+            length = node->distance;
             break;
         }
 
@@ -268,7 +268,7 @@ static inline void solve_maze(uint_fast32_t *const maze, register const uint_fas
 
     // Reverse traversal of the path until start is met
     printf("%d,%d", target.row + 1, target.col + 1);
-    while (length > 0)
+    while (--length)
     {
         // Check all adjacent nodes
         for (i = 0; i < 4; ++i)
@@ -282,7 +282,6 @@ static inline void solve_maze(uint_fast32_t *const maze, register const uint_fas
                 printf(" %d,%d", row + 1, col + 1);
                 current.row = row;
                 current.col = col;
-                --length;
                 break;
             }
         }
