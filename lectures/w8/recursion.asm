@@ -1,5 +1,5 @@
 main:
-    addi    $a0,    $zero,  5       # Calculate 5!
+    addi    $a0,    $zero,  10       # Calculate 5!
     jal     fact
     # Print
     move    $a0,    $v0
