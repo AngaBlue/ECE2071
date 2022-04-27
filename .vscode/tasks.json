@@ -42,7 +42,10 @@
 				"-o",
 				"${fileDirname}\\${fileBasenameNoExtension}.exe",
 				"-lm",
-				"-O3",
+				"-Ofast",
+				"-march=native",
+				"-mtune=native",
+				"-funroll-loops",
 				"-fvisibility=hidden",
 				"-static"
 			],
