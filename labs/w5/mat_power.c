@@ -1,12 +1,3 @@
-/**
- * @file mat_power.c
- * @author Angus Bosmans (abos0006@student.monash.edu)
- * @brief Raise a matrix in a file to the nth power
- * @date 2022-04-01
- * 
- * @copyright Copyright (c) 2022
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
