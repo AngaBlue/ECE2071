@@ -1,5 +1,5 @@
-    strcpy:                             # a0 = dest, a1 = src
-# Create stack frame
+strcpy:                                 # a0 = dest, a1 = src
+                                        # Create stack frame
     subi    $sp,    $sp,    4
     sw      $s0,    0($sp)
     addi    $s0,    $zero,  0           # i = 0
